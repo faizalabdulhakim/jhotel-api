@@ -83,12 +83,12 @@ class Auth extends CI_Controller
 		$decodedToken = $this->authorization_token->validateToken();
 		if ($decodedToken['status']) {
 			$this->response([
-				'status' => true,
+				'valid' => true,
 				'message' => 'Token is valid'
 			], 200);
 		} else {
 			$this->response([
-				'status' => false,
+				'valid' => false,
 				'message' => 'Invalid token'
 			], 401);
 		}
