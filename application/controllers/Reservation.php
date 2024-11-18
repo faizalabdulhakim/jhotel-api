@@ -3,12 +3,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require APPPATH . '/core/API_Controller.php';
 
-class User extends API_Controller
+class Reservation extends API_Controller
 {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->model('User_model');
+		$this->load->model('Reservation_model');
 	}
 
 	public function index($id = null)
@@ -18,13 +18,13 @@ class User extends API_Controller
 		$id = $this->input->get('id');
 
 		if ($id === null) {
-			$users = $this->User_model->getUsers();
+			$reservations = $this->Reservation_model->getReservations();
 		} else {
-			$users = $this->User_model->getUsers($id);
-			if (!$users) {
+			$reservations = $this->Reservation_model->getReservations();
+			if (!$reservations) {
 				$this->response([
 					'status' => false,
-					'message' => 'User not found'
+					'message' => 'Reservation not found'
 				], 404);
 				return;
 			}
@@ -32,7 +32,7 @@ class User extends API_Controller
 
 		$this->response([
 			'status' => true,
-			'data' => $users
+			'data' => $reservations
 
 		], 200);
 	}
@@ -43,18 +43,18 @@ class User extends API_Controller
 		$input = json_decode(file_get_contents("php://input"), true);
 
 		try {
-			$user_id = $this->User_model->createUser($input);
+			$reservation_id = $this->Reservation_model->createReservation($input);
 
-			if ($user_id) {
+			if ($reservation_id) {
 				$this->response([
 					'status' => true,
-					'message' => 'User created successfully',
-					'data' => ['user_id' => $user_id]
+					'message' => 'Reservation created successfully',
+					'data' => ['reservation_id' => $reservation_id]
 				], 201);
 			} else {
 				$this->response([
 					'status' => false,
-					'message' => 'Failed to create user'
+					'message' => 'Failed to create reservation'
 				], 500);
 			}
 		} catch (Exception $e) {
@@ -65,34 +65,34 @@ class User extends API_Controller
 		}
 	}
 
-	// Update an existing user
 	public function update($id)
 	{
 		if (!$this->isAuthorized) return;
 
 		$input = json_decode(file_get_contents("php://input"), true);
 
-		$user = $this->User_model->getUsers($id);
-		if (empty($user)) {
+		$reservation = $this->Reservation_model->getReservations($id);
+
+		if (empty($reservation)) {
 			$this->response([
-				'status' => false,
-				'message' => 'User not found'
+				'status	' => false,
+				'message' => 'Reservation not found'
 			], 404);
 			return;
 		}
 
 		try {
-			$updated = $this->User_model->updateUser($id, $input);
+			$updated = $this->Reservation_model->updateReservation($id, $input);
 
 			if ($updated) {
 				$this->response([
 					'status' => true,
-					'message' => 'User updated successfully'
+					'message' => 'Reservation updated successfully'
 				], 200);
 			} else {
 				$this->response([
 					'status' => false,
-					'message' => 'Failed to update user'
+					'message' => 'Failed to update reservation'
 				], 500);
 			}
 		} catch (Exception $e) {
@@ -107,28 +107,27 @@ class User extends API_Controller
 	{
 		if (!$this->isAuthorized) return;
 
-		$user = $this->User_model->getUsers($id);
-		if (!$user) {
+		$reservation = $this->Reservation_model->getReservations($id);
+		if (!$reservation) {
 			$this->response([
 				'status' => false,
-				'message' => 'User not found'
+				'message' => 'Reservation not found'
 			], 404);
 			return;
 		}
 
-
 		try {
-			$deleted = $this->User_model->deleteUser($id);
+			$deleted = $this->Reservation_model->deleteReservation($id);
 
 			if ($deleted) {
 				$this->response([
 					'status' => true,
-					'message' => 'User deleted successfully'
+					'message' => 'Reservation deleted successfully'
 				], 204);
 			} else {
 				$this->response([
 					'status' => false,
-					'message' => 'Failed to delete user'
+					'message' => 'Failed to delete reservation'
 				], 500);
 			}
 		} catch (Exception $e) {
