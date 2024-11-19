@@ -14,34 +14,56 @@ class Auth extends CI_Controller
 	{
 		$input = json_decode(file_get_contents("php://input"), true);
 
-		// hash the password and validate name, email, role = guest, and password
-		$input['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
-		$input['role'] = 'guest';
+		$this->form_validation->set_data($input);
+		$this->form_validation->set_rules('name', 'Name', 'required');
+		$this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]', [
+			'is_unique' => 'The email is already taken'
+		]);
+		$this->form_validation->set_rules('password', 'Password', 'required');
 
-		if (empty($input['name']) || empty($input['email']) || empty($input['role']) || empty($input['password'])) {
-			$this->response([
-				'status' => false,
-				'message' => 'Invalid input'
-			], 400);
+		if (!$this->form_validation->run()) {
+			$this->output
+				->set_content_type('application/json')
+				->set_status_header(400)
+				->set_output(json_encode([
+					'status' => false,
+					'message' => 'Validation error',
+					'errors' => $this->form_validation->error_array()
+				]));
 			return;
 		}
 
-		// Insert user
-		$user_id = $this->User_model->createUser($input);
+		// Hash the password and set default role
+		$input['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
+		$input['role'] = 'guest';
 
-		if ($user_id) {
-			$this->response([
-				'status' => true,
-				'message' => 'User created successfully',
-				'data' => ['user_id' => $user_id]
-			], 201);
-		} else {
-			$this->response([
-				'status' => false,
-				'message' => 'Failed to create user'
-			], 500);
+		try {
+			// Attempt to create the user
+			$user_id = $this->User_model->createUser($input);
+
+			// If successful, return response
+			$this->output
+				->set_content_type('application/json')
+				->set_status_header(201)
+				->set_output(json_encode([
+					'status' => true,
+					'message' => 'User created successfully',
+					'data' => ['user_id' => $user_id]
+				]));
+		} catch (Exception $e) {
+			// Return error response in case of exception
+			$this->output
+				->set_content_type('application/json')
+				->set_status_header(500)
+				->set_output(json_encode([
+					'status' => false,
+					'message' => 'Error creating user: ' . $e->getMessage(),
+					'code' => $e->getCode()
+				]));
 		}
 	}
+
+
 
 	public function login()
 	{
@@ -53,11 +75,19 @@ class Auth extends CI_Controller
 		$user = $this->User_model->getUserByEmail($email);
 
 		if ($user && password_verify($password, $user->password)) {
+
+			if ($user->role !== 'admin') {
+				return $this->response([
+					'status' => false,
+					'message' => 'User must be admin!'
+				], 401);
+			}
+
 			$token_data['userEmail'] = $user->email;
 			$token_data['userRole'] = $user->role;
 			$tokenData = $this->authorization_token->generateToken($token_data);
 
-			$this->response([
+			return $this->response([
 				'status' => true,
 				'message' => 'User logged in successfully',
 				'token' => $tokenData
