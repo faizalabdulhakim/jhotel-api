@@ -137,4 +137,17 @@ class Reservation extends API_Controller
 			], 500);
 		}
 	}
+
+	public function revenue()
+	{
+		if (!$this->isAuthorized) return;
+
+		$revenue = $this->Reservation_model->getRevenue();
+
+		$this->response([
+			'status' => true,
+			'data' => $revenue
+
+		], 200);
+	}
 }

@@ -19,9 +19,6 @@ class Reservation_model extends CI_Model
 
 	public function createReservation($data)
 	{
-		// dump and die data
-		// var_dump($data);
-
 		$this->db->insert('reservations', $data);
 		return $this->db->insert_id();
 	}
@@ -37,5 +34,17 @@ class Reservation_model extends CI_Model
 	{
 		$this->db->delete('reservations', ['id' => $id]);
 		return $this->db->affected_rows();
+	}
+
+	public function getRevenue()
+	{
+		$this->db->select_sum('rooms.price', 'total_revenue');
+		$this->db->where('status', 'PAID');
+		$this->db->from('reservations');
+		$this->db->join('rooms', 'reservations.room_id = rooms.id');
+		$query = $this->db->get();
+
+		$result = $query->row();
+		return $result->total_revenue;
 	}
 }
