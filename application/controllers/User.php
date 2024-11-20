@@ -11,29 +11,23 @@ class User extends API_Controller
 		$this->load->model('User_model');
 	}
 
-	public function index($id = null)
+	public function index()
 	{
 		if (!$this->isAuthorized) return;
 
-		$id = $this->input->get('id');
+		$limit = $this->input->get('limit') ? $this->input->get('limit') : 10;
+		$offset = $this->input->get('offset') ? $this->input->get('offset') : 0;
+		$keyword = $this->input->get('keyword') ? $this->input->get('keyword') : '';
 
-		if ($id === null) {
-			$users = $this->User_model->getUsers();
-		} else {
-			$users = $this->User_model->getUsers($id);
-			if (!$users) {
-				$this->response([
-					'status' => false,
-					'message' => 'User not found'
-				], 404);
-				return;
-			}
-		}
+		$pageNumber = ceil($offset / $limit + 1);
 
+		$users = $this->User_model->getUsers($limit, $offset, $keyword);
 		$this->response([
 			'status' => true,
+			'pageNumber' => $pageNumber,
+			'pageSize' => count($users),
+			'totalRecordCount' => $this->User_model->countUsers(),
 			'data' => $users
-
 		], 200);
 	}
 

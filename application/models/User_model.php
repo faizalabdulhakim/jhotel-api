@@ -9,13 +9,19 @@ class User_model extends CI_Model
 	}
 
 	// Get all users or a specific user by ID
-	public function getUsers($id = null)
+	public function getUsers($limit = 10, $offset = 0, $keyword = '')
 	{
-		if ($id === null) {
-			return $this->db->get('users')->result_array();
-		} else {
-			return $this->db->get_where('users', ['id' => $id])->result_array();
-		}
+		$this->db->like('name', $keyword);
+		$this->db->or_like('email', $keyword);
+		$this->db->or_like('role', $keyword);
+		$this->db->limit($limit, $offset);
+		$this->db->order_by('created_at', 'asc');
+		return $this->db->get('users')->result_array();
+	}
+
+	public function countUsers()
+	{
+		return $this->db->count_all('users');
 	}
 
 	public function getUserByEmail($email)
