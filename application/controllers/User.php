@@ -36,6 +36,24 @@ class User extends API_Controller
 		if (!$this->isAuthorized) return;
 		$input = json_decode(file_get_contents("php://input"), true);
 
+		// form validation name,email,password,role
+		$this->form_validation->set_data($input);
+		$this->form_validation->set_rules('name', 'Name', 'required');
+		$this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]', [
+			'is_unique' => 'The email is already taken'
+		]);
+		$this->form_validation->set_rules('password', 'Password', 'required');
+		$this->form_validation->set_rules('role', 'Role', 'required|in_list[admin,guest]');
+
+		if (!$this->form_validation->run()) {
+			$this->response([
+				'status' => false,
+				'message' => strip_tags(validation_errors())
+			], 400);
+			return;
+		}
+
+
 		try {
 			$user_id = $this->User_model->createUser($input);
 
