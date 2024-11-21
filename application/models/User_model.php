@@ -24,6 +24,10 @@ class User_model extends CI_Model
 		return $this->db->count_all('users');
 	}
 
+	public function getUserById($id)
+	{
+		return $this->db->get_where('users', ['id' => $id])->result_array()[0];
+	}
 	public function getUserByEmail($email)
 	{
 		return $this->db->get_where('users', ['email' => $email])->row();

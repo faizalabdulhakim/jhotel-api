@@ -91,33 +91,59 @@ class User extends API_Controller
 	{
 		if (!$this->isAuthorized) return;
 
-		$input = json_decode(file_get_contents("php://input"), true);
-
-		$user = $this->User_model->getUsers($id);
+		$user = $this->User_model->getUserById($id);
 		if (empty($user)) {
-			$this->response([
+			return $this->response([
 				'status' => false,
 				'message' => 'User not found'
 			], 404);
-			return;
+		}
+
+		$input = json_decode(file_get_contents("php://input"), true);
+
+		$this->form_validation->set_data($input);
+		$this->form_validation->set_rules('name', 'Name', 'required');
+
+		if (isset($input['email']) && $input['email'] !== $user['email']) {
+			$this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]', [
+				'is_unique' => 'The email is already taken'
+			]);
+		} else {
+			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+		}
+
+		$this->form_validation->set_rules('role', 'Role', 'required|in_list[admin,guest]');
+
+		if (!$this->form_validation->run()) {
+			return $this->response([
+				'status' => false,
+				'message' => strip_tags(validation_errors())
+			], 400);
 		}
 
 		try {
 			$updated = $this->User_model->updateUser($id, $input);
 
+			if ($updated === 0) {
+				return $this->response([
+					'status' => true,
+					'message' => 'User updated successfully'
+				], 200);
+			}
+
 			if ($updated) {
-				$this->response([
+				return $this->response([
 					'status' => true,
 					'message' => 'User updated successfully'
 				], 200);
 			} else {
-				$this->response([
+				return $this->response([
 					'status' => false,
 					'message' => 'Failed to update user'
 				], 500);
 			}
 		} catch (Exception $e) {
-			$this->response([
+			return $this->response([
 				'status' => false,
 				'message' => $e->getMessage()
 			], 500);
@@ -128,7 +154,7 @@ class User extends API_Controller
 	{
 		if (!$this->isAuthorized) return;
 
-		$user = $this->User_model->getUsers($id);
+		$user = $this->User_model->getUserById($id);
 		if (!$user) {
 			$this->response([
 				'status' => false,
