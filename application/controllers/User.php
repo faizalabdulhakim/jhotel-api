@@ -43,34 +43,43 @@ class User extends API_Controller
 			'is_unique' => 'The email is already taken'
 		]);
 		$this->form_validation->set_rules('password', 'Password', 'required');
+		$this->form_validation->set_rules('password_confirmation', "Password Confirmation", 'required');
 		$this->form_validation->set_rules('role', 'Role', 'required|in_list[admin,guest]');
 
 		if (!$this->form_validation->run()) {
-			$this->response([
+			return $this->response([
 				'status' => false,
 				'message' => strip_tags(validation_errors())
 			], 400);
-			return;
 		}
 
+		if ($input['password'] !== $input['password_confirmation']) {
+			return $this->response([
+				'status' => false,
+				'message' => 'Password confirmation does not match'
+			], 400);
+		}
+
+		unset($input['password_confirmation']);
+		$input['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
 
 		try {
 			$user_id = $this->User_model->createUser($input);
 
 			if ($user_id) {
-				$this->response([
+				return $this->response([
 					'status' => true,
 					'message' => 'User created successfully',
 					'data' => ['user_id' => $user_id]
 				], 201);
 			} else {
-				$this->response([
+				return $this->response([
 					'status' => false,
 					'message' => 'Failed to create user'
 				], 500);
 			}
 		} catch (Exception $e) {
-			$this->response([
+			return $this->response([
 				'status' => false,
 				'message' => $e->getMessage()
 			], 500);

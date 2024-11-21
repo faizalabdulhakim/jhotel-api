@@ -20,9 +20,11 @@ class Auth extends CI_Controller
 			'is_unique' => 'The email is already taken'
 		]);
 		$this->form_validation->set_rules('password', 'Password', 'required');
+		$this->form_validation->set_rules('password_confirmation', 'Password Confirmation', 'required');
+
 
 		if (!$this->form_validation->run()) {
-			$this->output
+			return $this->output
 				->set_content_type('application/json')
 				->set_status_header(400)
 				->set_output(json_encode([
@@ -30,19 +32,27 @@ class Auth extends CI_Controller
 					'message' => 'Validation error',
 					'errors' => $this->form_validation->error_array()
 				]));
-			return;
 		}
 
-		// Hash the password and set default role
+		if ($input['password'] !== $input['password_confirmation']) {
+			return $this->response([
+				'status' => false,
+				'errors' => [
+					'Password confirmation does not match',
+				]
+			], 400);
+		}
+
+		unset($input['password_confirmation']);
 		$input['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
 		$input['role'] = 'guest';
 
 		try {
-			// Attempt to create the user
+
 			$user_id = $this->User_model->createUser($input);
 
-			// If successful, return response
-			$this->output
+
+			return $this->output
 				->set_content_type('application/json')
 				->set_status_header(201)
 				->set_output(json_encode([
@@ -51,8 +61,8 @@ class Auth extends CI_Controller
 					'data' => ['user_id' => $user_id]
 				]));
 		} catch (Exception $e) {
-			// Return error response in case of exception
-			$this->output
+
+			return $this->output
 				->set_content_type('application/json')
 				->set_status_header(500)
 				->set_output(json_encode([
