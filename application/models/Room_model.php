@@ -8,13 +8,25 @@ class Room_model extends CI_Model
 		$this->load->database();
 	}
 
-	public function getRooms($id = null)
+	public function getRooms($limit = 10, $offset = 0, $keyword = '')
 	{
-		if ($id === null) {
-			return $this->db->get('rooms')->result_array();
-		} else {
-			return $this->db->get_where('rooms', ['id' => $id])->result_array();
-		}
+		$this->db->like('name', $keyword);
+		$this->db->or_like('type', $keyword);
+		$this->db->or_like('price', $keyword);
+		$this->db->or_like('description', $keyword);
+		$this->db->limit($limit, $offset);
+		$this->db->order_by('created_at', 'asc');
+		return $this->db->get('rooms')->result_array();
+	}
+
+	public function getRoomById($id)
+	{
+		return $this->db->get_where('rooms', ['id' => $id])->result_array()[0];
+	}
+
+	public function countRooms()
+	{
+		return $this->db->count_all('rooms');
 	}
 
 	public function createRoom($data)

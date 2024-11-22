@@ -11,29 +11,24 @@ class Room extends API_Controller
 		$this->load->model('Room_model');
 	}
 
-	public function index($id = null)
+	public function index()
 	{
 		if (!$this->isAuthorized) return;
 
-		$id = $this->input->get('id');
+		$limit = $this->input->get('limit') ? $this->input->get('limit') : 10;
+		$offset = $this->input->get('offset') ? $this->input->get('offset') : 0;
+		$keyword = $this->input->get('keyword') ? $this->input->get('keyword') : '';
 
-		if ($id === null) {
-			$rooms = $this->Room_model->getRooms();
-		} else {
-			$rooms = $this->Room_model->getRooms();
-			if (!$rooms) {
-				$this->response([
-					'status' => false,
-					'message' => 'Room not found'
-				], 404);
-				return;
-			}
-		}
+		$pageNumber = ceil($offset / $limit + 1);
 
-		$this->response([
+		$rooms = $this->Room_model->getRooms($limit, $offset, $keyword);
+
+		return $this->response([
 			'status' => true,
+			'pageNumber' => $pageNumber,
+			'pageSize' => count($rooms),
+			'totalRecordCount' => $this->Room_model->countRooms(),
 			'data' => $rooms
-
 		], 200);
 	}
 
@@ -42,23 +37,37 @@ class Room extends API_Controller
 		if (!$this->isAuthorized) return;
 		$input = json_decode(file_get_contents("php://input"), true);
 
+		$this->form_validation->set_data($input);
+		$this->form_validation->set_rules('name', 'Name', 'required');
+		$this->form_validation->set_rules('type', 'Type', 'required');
+		$this->form_validation->set_rules('price', 'Price', 'required|numeric');
+		$this->form_validation->set_rules('description', 'Description', 'required|trim');
+		$this->form_validation->set_rules('availability', 'Availability', 'required|numeric|in_list[0,1]');
+
+		if (!$this->form_validation->run()) {
+			return $this->response([
+				'status' => false,
+				'message' => strip_tags(validation_errors())
+			], 400);
+		}
+
 		try {
 			$room_id = $this->Room_model->createRoom($input);
 
 			if ($room_id) {
-				$this->response([
+				return $this->response([
 					'status' => true,
 					'message' => 'Room created successfully',
 					'data' => ['room_id' => $room_id]
 				], 201);
 			} else {
-				$this->response([
+				return $this->response([
 					'status' => false,
 					'message' => 'Failed to create room'
 				], 500);
 			}
 		} catch (Exception $e) {
-			$this->response([
+			return $this->response([
 				'status' => false,
 				'message' => $e->getMessage()
 			], 500);
@@ -69,10 +78,8 @@ class Room extends API_Controller
 	{
 		if (!$this->isAuthorized) return;
 
-		$input = json_decode(file_get_contents("php://input"), true);
 
-		$room = $this->Room_model->getRooms($id);
-
+		$room = $this->Room_model->getRoomById($id);
 		if (empty($room)) {
 			$this->response([
 				'status	' => false,
@@ -81,8 +88,31 @@ class Room extends API_Controller
 			return;
 		}
 
+		$input = json_decode(file_get_contents("php://input"), true);
+
+		$this->form_validation->set_data($input);
+		$this->form_validation->set_rules('name', 'Name', 'required');
+		$this->form_validation->set_rules('type', 'Type', 'required');
+		$this->form_validation->set_rules('price', 'Price', 'required|numeric');
+		$this->form_validation->set_rules('description', 'Description', 'required|trim');
+		$this->form_validation->set_rules('availability', 'Availability', 'required|numeric');
+
+		if (!$this->form_validation->run()) {
+			return $this->response([
+				'status' => false,
+				'message' => strip_tags(validation_errors())
+			], 400);
+		}
+
 		try {
 			$updated = $this->Room_model->updateRoom($id, $input);
+
+			if ($updated === 0) {
+				return $this->response([
+					'status' => true,
+					'message' => 'Room updated successfully'
+				], 200);
+			}
 
 			if ($updated) {
 				$this->response([
@@ -107,7 +137,7 @@ class Room extends API_Controller
 	{
 		if (!$this->isAuthorized) return;
 
-		$room = $this->Room_model->getRooms($id);
+		$room = $this->Room_model->getRoomById($id);
 		if (!$room) {
 			$this->response([
 				'status' => false,

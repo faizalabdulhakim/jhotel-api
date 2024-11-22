@@ -36,7 +36,6 @@ class User extends API_Controller
 		if (!$this->isAuthorized) return;
 		$input = json_decode(file_get_contents("php://input"), true);
 
-		// form validation name,email,password,role
 		$this->form_validation->set_data($input);
 		$this->form_validation->set_rules('name', 'Name', 'required');
 		$this->form_validation->set_rules('email', 'Email', 'required|valid_email|is_unique[users.email]', [
@@ -162,7 +161,6 @@ class User extends API_Controller
 			], 404);
 			return;
 		}
-
 
 		try {
 			$deleted = $this->User_model->deleteUser($id);
