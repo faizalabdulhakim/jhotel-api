@@ -15,8 +15,13 @@ class API_Controller extends CI_Controller
 	protected function checkAuthorization()
 	{
 		$headers = $this->input->request_headers();
-		if (isset($headers['Authorization'])) {
-			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
+		// echo '<pre>';
+		// print_r($_SERVER);
+		// print_r($headers);
+		// exit;
+
+		if (isset($headers['authorization'])) {
+			$decodedToken = $this->authorization_token->validateToken($headers['authorization']);
 			if ($decodedToken['status']) {
 				$this->isAuthorized = true;
 			} else {
@@ -32,6 +37,7 @@ class API_Controller extends CI_Controller
 			], 401);
 		}
 	}
+
 
 	// Helper function to output JSON response
 	protected function response($data, $http_code = 200)

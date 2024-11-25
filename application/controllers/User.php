@@ -13,6 +13,8 @@ class User extends API_Controller
 
 	public function index()
 	{
+		// var_dump($this->isAuthorized);
+		// die();
 		if (!$this->isAuthorized) return;
 
 		$limit = $this->input->get('limit') ? $this->input->get('limit') : 10;
@@ -22,7 +24,7 @@ class User extends API_Controller
 		$pageNumber = ceil($offset / $limit + 1);
 
 		$users = $this->User_model->getUsers($limit, $offset, $keyword);
-		$this->response([
+		return $this->response([
 			'status' => true,
 			'pageNumber' => $pageNumber,
 			'pageSize' => count($users),

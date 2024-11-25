@@ -73,8 +73,6 @@ class Auth extends CI_Controller
 		}
 	}
 
-
-
 	public function login()
 	{
 		$input = json_decode(file_get_contents("php://input"), true);
@@ -122,12 +120,12 @@ class Auth extends CI_Controller
 	{
 		$decodedToken = $this->authorization_token->validateToken();
 		if ($decodedToken['status']) {
-			$this->response([
+			return $this->response([
 				'valid' => true,
 				'message' => 'Token is valid'
 			], 200);
 		} else {
-			$this->response([
+			return $this->response([
 				'valid' => false,
 				'message' => 'Invalid token'
 			], 401);

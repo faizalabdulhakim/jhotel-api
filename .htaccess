@@ -1,26 +1,26 @@
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-
-  # Set your RewriteBase here if your project is in a subdirectory.
-  # RewriteBase /your-subdirectory/
-
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ index.php?/$1 [L]
-
-  # Ensure Authorization header is passed to PHP
-  RewriteCond %{HTTP:Authorization} ^(.*)
-  RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
-</IfModule>
-
-<IfModule !mod_rewrite.c>
-  # If mod_rewrite is not installed, handle 404 errors through index.php
-  ErrorDocument 404 /index.php
-</IfModule>
-
-<IfModule mod_headers.c>
-  Header set Access-Control-Allow-Origin "http://localhost:3000"
-  Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE, PATCH"
-  Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-	Header set Access-Control-Allow-Credentials "true"
-</IfModule>
+    RewriteEngine On
+  
+    # Set your RewriteBase here if your project is in a subdirectory.
+  
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?/$1 [L]
+  
+    # Ensure Authorization header is passed to PHP
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+  </IfModule>
+  
+  <IfModule !mod_rewrite.c>
+    # If mod_rewrite is not installed, handle 404 errors through index.php
+    ErrorDocument 404 /index.php
+  </IfModule>
+  
+  <IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE, PATCH"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    Header set Access-Control-Allow-Credentials "true"
+  </IfModule>
+  
