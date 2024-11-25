@@ -14,14 +14,14 @@ class API_Controller extends CI_Controller
 	// Centralized authorization check
 	protected function checkAuthorization()
 	{
-		$headers = $this->input->request_headers();
+		// $headers = $this->input->request_headers();
 		// echo '<pre>';
 		// print_r($_SERVER);
 		// print_r($headers);
 		// exit;
 
-		if (isset($headers['authorization'])) {
-			$decodedToken = $this->authorization_token->validateToken($headers['authorization']);
+		if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+			$decodedToken = $this->authorization_token->validateToken($_SERVER['HTTP_AUTHORIZATION']);
 			if ($decodedToken['status']) {
 				$this->isAuthorized = true;
 			} else {

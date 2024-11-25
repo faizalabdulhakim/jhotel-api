@@ -8,13 +8,30 @@ class Reservation_model extends CI_Model
 		$this->load->database();
 	}
 
-	public function getReservations($id = null)
+	public function getReservations($limit = 10, $offset = 0, $keyword = '')
 	{
-		if ($id === null) {
-			return $this->db->get('reservations')->result_array();
-		} else {
-			return $this->db->get_where('reservations', ['id' => $id])->result_array();
+		$this->db->like('user_id', $keyword);
+		$this->db->or_like('room_id', $keyword);
+		$this->db->or_like('check_in_date', $keyword);
+		$this->db->or_like('check_out_date', $keyword);
+		$this->db->or_like('status', $keyword);
+		$this->db->limit($limit, $offset);
+		$this->db->order_by('created_at', 'asc');
+		return $this->db->get('reservations')->result_array();
+	}
+
+	public function getReservationById($id)
+	{
+		$query = $this->db->get_where('reservations', ['id' => $id])->result_array();
+		if (empty($query)) {
+			return null;
 		}
+		return $query[0];
+	}
+
+	public function countReservations()
+	{
+		return $this->db->count_all('reservations');
 	}
 
 	public function createReservation($data)

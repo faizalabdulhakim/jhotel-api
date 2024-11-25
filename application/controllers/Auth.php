@@ -30,7 +30,7 @@ class Auth extends CI_Controller
 				->set_output(json_encode([
 					'status' => false,
 					'message' => 'Validation error',
-					'errors' => $this->form_validation->error_array()
+					'errors' => strip_tags(validation_errors())
 				]));
 		}
 

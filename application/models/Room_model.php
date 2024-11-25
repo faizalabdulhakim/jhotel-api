@@ -21,7 +21,11 @@ class Room_model extends CI_Model
 
 	public function getRoomById($id)
 	{
-		return $this->db->get_where('rooms', ['id' => $id])->result_array()[0];
+		$query = $this->db->get_where('rooms', ['id' => $id])->result_array();
+		if (empty($query)) {
+			return null;
+		}
+		return $query[0];
 	}
 
 	public function countRooms()

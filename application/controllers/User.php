@@ -13,8 +13,6 @@ class User extends API_Controller
 
 	public function index()
 	{
-		// var_dump($this->isAuthorized);
-		// die();
 		if (!$this->isAuthorized) return;
 
 		$limit = $this->input->get('limit') ? $this->input->get('limit') : 10;
